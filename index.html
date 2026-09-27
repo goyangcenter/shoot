@@ -288,6 +288,11 @@
         shots = []; render();
         toast('✓ ' + total + '장 전송 완료', 'ok');
         btn.textContent = '전송';
+        sentTotal += total;
+        // 복귀 주소로 자동 이동하지 않습니다.
+        // 앱을 새로 띄우면 열어두었던 차량이 풀려서, 사진 목록도 팀즈 알림도 이어지지 않습니다.
+        // 대신 "이 탭을 닫고 앱으로 돌아가세요" 안내만 띄웁니다.
+        showDone();
         if (CFG.r) setTimeout(function () { stop(); location.href = CFG.r; }, 1200);
       } else {
         toast('전송 ' + done + '/' + total + ' — ' + errs.join(' / '), 'err');
@@ -296,6 +301,25 @@
       }
     });
   });
+
+  /* ── 전송을 마친 뒤 안내 ── */
+  var sentTotal = 0;
+  function showDone() {
+    if (CFG.r) return;                       // 복귀 주소가 있으면 곧 이동하므로 그대로 둡니다
+    var box = document.getElementById('msg');
+    if (!box) return;
+    box.innerHTML = '<div>'
+      + '<div style="font-size:21px;color:#4ade80;font-weight:700">✓ ' + sentTotal + '장 전송 완료</div>'
+      + '<div style="margin-top:12px;line-height:1.8">'
+      + '<b>이 탭을 닫고 차량관리 앱으로 돌아가세요.</b><br>'
+      + '돌아가면 사진 목록이 저절로 채워집니다.</div>'
+      + '<div style="margin-top:12px;color:#94a3b8;font-size:13px">'
+      + '더 찍으려면 잠시 기다리면 카메라로 돌아갑니다.</div>'
+      + '</div>';
+    box.style.display = 'flex';
+    // 5초 뒤 카메라 화면으로 돌아갑니다 (계속 찍을 수 있게)
+    setTimeout(function () { if (stream) box.style.display = 'none'; }, 5000);
+  }
 
   /* ── 연결 확인 (?test 를 붙이면 카메라 없이 통신만 시험) ── */
   if (/(^|&)test(=|$)/.test((location.hash || '').replace(/^#/, '')) && CFG.u && CFG.k) {
